@@ -1,12 +1,28 @@
 # Booking and scheduling
 
-links:    
-https://docs.aspose.cloud/email/quick-start-with-icalendar-api/#icalendar-api  
-https://icalendar.org/    
-https://icalendar.readthedocs.io/en/latest/install.html  
+### Start Virtual Environment
 
+In order to start the virtual environment, run the following commands:
 
-about iCalendar:
-- standard for representing and exchanging calendar and scheduling information between computer systems
-- iCalendar files typically have the file extension ".ical" ".ics" ".ifb"  or ".icalendar" with a MIME type of "text/calendar".
-- 
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+```
+
+### Run the Application
+
+In order to run the application, run the following command:
+
+```bash
+uvicorn main:app --reload
+```
+
+### Run tests
+
+In order to run the tests script, run the following command:
+
+```bash
+pytest
+```
+
