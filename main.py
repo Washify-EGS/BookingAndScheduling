@@ -1,77 +1,84 @@
 from fastapi import FastAPI, HTTPException
-from typing import List, Optional
-from pydantic import BaseModel
+from datetime import datetime
+from typing import List
+from models import Slot, SlotParams
+from crud import (
+    get_bookings,
+    create_booking,
+    get_booking,
+    update_booking,
+    delete_booking,
+)
+import sqlite3
 
-tags_metadata = [
-    {
-        "name": "Busy",
-        "description": "Bookings",
-    },
-    {
-        "name": "Free",
-        "description": "Free slots",
-    },
-]
+
+tags_metadata = [ { "name": "Busy", "description": "Bookings"}, { "name": "Free", "description": "Free slots"} ]
 
 app = FastAPI(openapi_tags=tags_metadata)
 
-# Define Pydantic models for request and response
-class Booking(BaseModel):
-    id: Optional[int] = None
-    date: str
 
-class Slot(BaseModel):
-    id: Optional[int] = None
-    date: str   
+conn = sqlite3.connect('bookings.db')
+c = conn.cursor()
+c.execute('''CREATE TABLE IF NOT EXISTS bookings
+             (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT)''')
+conn.commit()
 
-# Dummy data for illustration purposes
-bookings_db = []
-slots_db = []
 
-# Define FastAPI routes
-@app.get("/busy", tags=["Busy"], response_model=List[Booking])
-async def get_bookings():
-    return bookings_db
+@app.get("/busy", tags=["Busy"], response_model=List[Slot])
+async def get_bookings_handler():
+    return get_bookings()
 
-@app.post("/busy", tags=["Busy"], response_model=Booking, status_code=201)
-async def create_booking(booking: Booking):
-    bookings_db.append(booking)
-    return booking
 
-@app.get("/busy/{booking_id}", tags=["Busy"], response_model=List[Booking])
-async def get_booking(booking_id: int):
-    booking = next((b for b in bookings_db if b["id"] == booking_id), None)
-    if not booking:
+@app.post("/busy", tags=["Busy"], response_model=Slot, status_code=201)
+async def create_booking_handler(date: datetime):
+    result = await create_booking(date)
+    return result
+
+
+@app.get("/busy/{booking_id}", tags=["Busy"], response_model=Slot)
+async def get_booking_handler(booking_id: int):
+    found_booking = get_booking(booking_id)
+    if found_booking is None:
         raise HTTPException(status_code=404, detail="Booking not found")
-    return [booking]
+    return found_booking
 
-@app.put("/busy/{booking_id}", tags=["Busy"], response_model=Booking)
-async def update_booking(booking_id: int, booking: Booking):
-    # Implementation to update the booking
-    # ...
 
-    # Return the updated booking
-    return booking
-
-@app.delete("/busy/{booking_id}", tags=["Busy"], response_model=Booking)
-async def delete_booking(booking_id: int):
-    booking = next((b for b in bookings_db if b["id"] == booking_id), None)
-    if not booking:
+@app.put("/busy/{booking_id}", tags=["Busy"], response_model=Slot)
+async def update_booking_handler(booking_id: int, date: datetime):
+    found_booking = get_booking(booking_id)
+    if found_booking is None:
         raise HTTPException(status_code=404, detail="Booking not found")
-    
-    bookings_db.remove(booking)
-    return booking
+    return await update_booking(booking_id, date)
 
-@app.get("/free", tags=["Free"], response_model=List[Slot])
-async def get_free_slots():
-    return slots_db
 
-# do i need this endpoint?
-# @app.delete("/free/{slot_id}", tags=["Free"], response_model=Slot)
-# async def delete_free_slot(slot_id: int):
-#     slot = next((s for s in slots_db if s["id"] == slot_id), None)
-#     if not slot:
-#         raise HTTPException(status_code=404, detail="Slot not found")
+@app.delete("/busy/{booking_id}", tags=["Busy"])
+async def delete_booking_handler(booking_id: int):
+    found_booking = get_booking(booking_id)
+    if found_booking is None:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    del_msg = delete_booking(booking_id)
+    return del_msg
     
-#     slots_db.remove(slot)
-#     return slot
+
+# TODO
+
+@app.post("/free", tags=["Free"], response_model=List[Slot])
+async def get_free_slots(slot_params: SlotParams):
+    start_time = slot_params.start_time
+    end_time = slot_params.end_time
+
+    # Retrieve booked slots
+    booked_slots = get_bookings()
+
+    # Generate all possible slots within the scheduling window
+    all_slots = []
+    current_slot = start_time
+    while current_slot < end_time:
+        all_slots.append(current_slot)
+        current_slot += slot_params.slot_interval
+
+    # Identify free slots
+    free_slots = [slot for slot in all_slots if slot not in booked_slots]
+
+    return free_slots
+
