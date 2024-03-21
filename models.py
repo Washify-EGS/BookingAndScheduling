@@ -4,11 +4,10 @@ from pydantic import BaseModel
 
 # Pydantic models for request and response
 
-class Slot(BaseModel):
-    id: int
+class Slot(BaseModel):  
+    uuid: str
     date: datetime  
 
 class SlotParams(BaseModel):
-    start_time: datetime
-    end_time: datetime
-    slot_interval: timedelta
+    start_date: datetime
+    end_date: datetime
