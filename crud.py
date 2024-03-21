@@ -11,6 +11,12 @@ def get_bookings():
     bookings = [{"uuid": row[1], "date": row[2]} for row in c.fetchall()]
     return bookings
 
+def check_booking_conflict(date: datetime):
+    # Check if there's already a booking at the specified date and time
+    c.execute("SELECT * FROM bookings WHERE date = ?", (date,))
+    existing_booking = c.fetchone()
+    return existing_booking is not None
+
 async def create_booking(date: datetime):
     booking_uuid = str(uuid4())
     with conn:

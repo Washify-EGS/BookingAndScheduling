@@ -4,6 +4,7 @@ from typing import List
 from models import Slot, SlotParams
 from crud import (
     get_bookings,
+    check_booking_conflict,
     create_booking,
     get_booking,
     update_booking,
@@ -51,6 +52,8 @@ async def get_bookings_handler():
 
 @app.post("/busy", tags=["Busy"], response_model=Slot, status_code=201)
 async def create_booking_handler(date: datetime):
+    if check_booking_conflict(date):
+        raise HTTPException(status_code=409, detail="Booking conflict: There's already a booking at this date and time")
     result = await create_booking(date)
     return result
 
