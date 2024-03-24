@@ -10,8 +10,6 @@ from crud import (
     update_booking,
     delete_booking,
 )
-import sqlite3
-
 
 tags_metadata = [   { "name": "Busy", "description": "Bookings"}, 
                     { "name": "Free", "description": "Free slots"},
@@ -19,13 +17,6 @@ tags_metadata = [   { "name": "Busy", "description": "Bookings"},
 
 app = FastAPI(openapi_tags=tags_metadata)
 
-
-conn = sqlite3.connect('bookings.db')
-c = conn.cursor()
-c.execute('''CREATE TABLE IF NOT EXISTS bookings
-             (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid TEXT, date TEXT)''')
-                        # devo garantir q o uuid seja UNIQUE?
-conn.commit()
 
 # Default slot interval
 SLOT_INTERVAL = timedelta(hours=1)
@@ -66,7 +57,7 @@ async def get_booking_handler(booking_uuid: str):
     return found_booking
 
 
-@app.put("/busy/{booking_id}", tags=["Busy"], response_model=Slot)
+@app.put("/busy/{booking_uuid}", tags=["Busy"], response_model=Slot)
 async def update_booking_handler(booking_uuid: str, date: datetime):
     found_booking = get_booking(booking_uuid)
     if found_booking is None:
@@ -74,7 +65,7 @@ async def update_booking_handler(booking_uuid: str, date: datetime):
     return await update_booking(booking_uuid, date)
 
 
-@app.delete("/busy/{booking_id}", tags=["Busy"])
+@app.delete("/busy/{booking_uuid}", tags=["Busy"])
 async def delete_booking_handler(booking_uuid: str):
     found_booking = get_booking(booking_uuid)
     if found_booking is None:
@@ -83,15 +74,14 @@ async def delete_booking_handler(booking_uuid: str):
     return del_msg
     
 
-# TODO
-
+# TODO needs some changes
 @app.post("/free", tags=["Free"])
 async def get_free_slots(slot_params: SlotParams):
     start_date = slot_params.start_date
     end_date = slot_params.end_date
 
     # Retrieve booked slots
-    booked_dates = [datetime.strptime(b["date"], "%Y-%m-%d %H:%M:%S") for b in get_bookings()]
+    booked_dates = [datetime.strptime(str(b["date"]), "%Y-%m-%d %H:%M:%S") for b in get_bookings()]
 
     # Generate all possible slots within the scheduling window
     current_date = start_date
@@ -102,4 +92,4 @@ async def get_free_slots(slot_params: SlotParams):
             free_slots.append(current_date)
         current_date += SLOT_INTERVAL
 
-    return free_slots
+    return free_slots   

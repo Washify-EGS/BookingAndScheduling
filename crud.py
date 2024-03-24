@@ -2,8 +2,15 @@ import sqlite3
 from models import Slot
 from datetime import datetime
 from uuid import uuid4  
+import mysql.connector
 
-conn = sqlite3.connect('bookings.db')
+
+conn = mysql.connector.connect(
+    host="172.17.0.2",
+    user="root",
+    password="password",
+    database="testdb"  # Specify the database name
+)
 c = conn.cursor()
 
 def get_bookings():
@@ -12,19 +19,19 @@ def get_bookings():
     return bookings
 
 def check_booking_conflict(date: datetime):
-    # Check if there's already a booking at the specified date and time
-    c.execute("SELECT * FROM bookings WHERE date = ?", (date,))
+    # Check if there'   s already a booking at the specified date and time
+    c.execute("SELECT * FROM bookings WHERE date = %s", (date,))
     existing_booking = c.fetchone()
     return existing_booking is not None
 
 async def create_booking(date: datetime):
     booking_uuid = str(uuid4())
-    with conn:
-        c.execute("INSERT INTO bookings (uuid, date) VALUES (?, ?)", (booking_uuid, date,))
+    c.execute("INSERT INTO bookings (uuid, date) VALUES (%s, %s)", (booking_uuid, date,))
+    conn.commit()
     return {"uuid": booking_uuid, "date": date}
 
 def get_booking(booking_uuid: str):
-    c.execute("SELECT * FROM bookings WHERE uuid=?", (booking_uuid,))
+    c.execute("SELECT * FROM bookings WHERE uuid=%s", (booking_uuid,))
     result = c.fetchone()
     if result:
         return {"uuid": result[1], "date": result[2]}
@@ -32,11 +39,11 @@ def get_booking(booking_uuid: str):
         return None
 
 async def update_booking(booking_uuid: str, date: datetime):
-    with conn:
-        c.execute("UPDATE bookings SET date=? WHERE uuid=?", (date, booking_uuid))
+    c.execute("UPDATE bookings SET date=%s WHERE uuid=%s", (date, booking_uuid,))
+    conn.commit()
     return {"uuid": booking_uuid, "date": date}
 
 def delete_booking(booking_uuid: str):
-    with conn:
-        c.execute("DELETE FROM bookings WHERE uuid=?", (booking_uuid,))
+    c.execute("DELETE FROM bookings WHERE uuid=%s", (booking_uuid,))
+    conn.commit()
     return {"message": "Booking deleted"}
