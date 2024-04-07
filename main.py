@@ -21,28 +21,33 @@ app = FastAPI(openapi_tags=tags_metadata)
 # Default slot interval
 SLOT_INTERVAL = timedelta(hours=1)
 
+# Get current slot interval configuration
+@app.get("/config/slot_interval", tags=["Config"])
+async def get_slot_interval():
+    global SLOT_INTERVAL
+    return {"current slot interval":abs(SLOT_INTERVAL), "message": "Available slot intervals from 1 minute to 60 minutes(1 hour slots)"}
+
 # Slot interval configuration endpoint
 @app.post("/config/slot_interval", tags=["Config"])
 async def set_slot_interval(slot_interval: timedelta):
+    # min slot -> 1 min ; max slot -> 60 min  
+    if (slot_interval.total_seconds() < 60 or slot_interval.total_seconds() > 3600) :
+        raise HTTPException(status_code=400, detail=f"Invalid slot interval. Available slot intervals go from 1 minute to 60 minutes(1 hour slots)")
     global SLOT_INTERVAL
     SLOT_INTERVAL = slot_interval
     return {"message": "Slot interval updated successfully"}
 
-# Get current slot interval configuration
-@app.get("/config/slot_interval", tags=["Config"], response_model=timedelta)
-async def get_slot_interval():
-    global SLOT_INTERVAL
-    return SLOT_INTERVAL
 
 
 @app.get("/busy", tags=["Busy"], response_model=List[Slot])
 async def get_bookings_handler():
-    print(SLOT_INTERVAL)
     return get_bookings()
 
 
 @app.post("/busy", tags=["Busy"], response_model=Slot, status_code=201)
 async def create_booking_handler(date: datetime):
+    if (date.minute*60 % SLOT_INTERVAL.total_seconds() != 0 or date.second != 0):
+        raise HTTPException(status_code=400, detail=f"Invalid booking time. Bookings must be made at intervals of {int(SLOT_INTERVAL.total_seconds() / 60)} minutes.")
     if check_booking_conflict(date):
         raise HTTPException(status_code=409, detail="Booking conflict: There's already a booking at this date and time")
     result = await create_booking(date)

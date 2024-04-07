@@ -19,13 +19,14 @@ def get_bookings():
     return bookings
 
 def check_booking_conflict(date: datetime):
-    # Check if there'   s already a booking at the specified date and time
+    # Check if there is already a booking at the specified date and time
     c.execute("SELECT * FROM bookings WHERE date = %s", (date,))
     existing_booking = c.fetchone()
     return existing_booking is not None
 
 async def create_booking(date: datetime):
     booking_uuid = str(uuid4())
+    print(date.minute)
     c.execute("INSERT INTO bookings (uuid, date) VALUES (%s, %s)", (booking_uuid, date,))
     conn.commit()
     return {"uuid": booking_uuid, "date": date}
