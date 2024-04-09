@@ -26,17 +26,17 @@ pip3 install -r requirements.txt
 
 Pull MySQL image from Docker Hub with:
 ```bash
-$ docker pull mysql:latest
+docker pull mysql:latest
 ```
 
 Create the container:
 ```bash
-$ docker run --name bookings -e MYSQL_ROOT_PASSWORD=password -d mysql:latest
+docker run --name bookings -e MYSQL_ROOT_PASSWORD=password -d mysql:latest
 ```
 
 Check if the container is running with:
 ```bash
-$ docker ps 
+docker ps 
 ```
 
 
@@ -51,7 +51,7 @@ Host ip is optional, default is set to 172.17.0.2
 Check if it is using another ip address with: 
 
 ```bash
-$ docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' bookings 
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' bookings 
 ```
 
 
