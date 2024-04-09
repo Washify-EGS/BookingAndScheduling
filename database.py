@@ -1,7 +1,6 @@
 import mysql.connector
 import configparser
 import os
-import time
 from argparse import ArgumentParser
 
 def reset_database(config):
@@ -9,25 +8,13 @@ def reset_database(config):
     database_name = config['database']['database_name']
     password = config['database']['password']
 
-    try:
-        timeout = 10  # Timeout in seconds
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            try:
-                db = mysql.connector.connect(
-                    host=host,
-                    user="root",
-                    password=password,
-                    connection_timeout=1  # Adjust connection timeout as needed
-                )
-                break
-            except mysql.connector.Error as e:
-                print("Connection attempt failed. Retrying...")
-                time.sleep(1)
-        else:
-            print("Connection attempt timed out. Please check your database configuration.")
-            return
-
+   
+    try: 
+        db = mysql.connector.connect(
+            host=host,
+            user="root",
+            password=password
+        )
         cursor = db.cursor()
 
         # Drop existing database if it exists
@@ -104,5 +91,6 @@ if __name__ == "__main__":
             create_config(config_file, host, database_name, password)
             config = read_config(config_file)
             break
+
 
     reset_database(config)
