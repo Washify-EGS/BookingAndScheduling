@@ -39,19 +39,17 @@ Check if the container is running with:
 docker ps 
 ```
 
+Get the container host ip address with:
+
+```bash
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' bookings 
+```
+
 
 To create/reset the database and its data, run the following command:
 
 ```bash
 python3 database.py 
-```
-
-Host ip is optional, default is set to 172.17.0.2 
-
-Check if it is using another ip address with: 
-
-```bash
-docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' bookings 
 ```
 
 
