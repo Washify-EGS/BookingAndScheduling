@@ -43,7 +43,7 @@ $ docker ps
 To create/reset the database and its data, run the following command:
 
 ```bash
-python3 database.py <database_name> <password> --host <host_ip>
+python3 database.py 
 ```
 
 Host ip is optional, default is set to 172.17.0.2 

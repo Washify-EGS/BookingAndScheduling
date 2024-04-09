@@ -1,48 +1,108 @@
 import mysql.connector
+import configparser
+import os
+import time
 from argparse import ArgumentParser
 
-database = None
+def reset_database(config):
+    host = config['database']['host']
+    database_name = config['database']['database_name']
+    password = config['database']['password']
 
-def reset_database(name, pw, host="172.17.0.2"):
-    global database
-    database = {  # Store arguments in a global dictionary
+    try:
+        timeout = 10  # Timeout in seconds
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                db = mysql.connector.connect(
+                    host=host,
+                    user="root",
+                    password=password,
+                    connection_timeout=1  # Adjust connection timeout as needed
+                )
+                break
+            except mysql.connector.Error as e:
+                print("Connection attempt failed. Retrying...")
+                time.sleep(1)
+        else:
+            print("Connection attempt timed out. Please check your database configuration.")
+            return
+
+        cursor = db.cursor()
+
+        # Drop existing database if it exists
+        cursor.execute("DROP DATABASE IF EXISTS {}".format(database_name))
+
+        cursor.execute("CREATE DATABASE {}".format(database_name))
+        cursor.execute("USE {}".format(database_name))
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS bookings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                uuid VARCHAR(36) UNIQUE,
+                date DATETIME
+            )
+        """)
+
+        print("Database '{}' reset successfully!".format(database_name))
+        cursor.close()
+        db.close()
+
+    except mysql.connector.Error as e:
+        print("An error occurred:", e)
+
+
+def create_config(config_file, host, database_name, password):
+    config = configparser.ConfigParser()
+    config['database'] = {
         'host': host,
-        'user': 'root',
-        'password': pw,
-        'database': name
+        'database_name': database_name,
+        'password': password
     }
+    with open(config_file, 'w') as configfile:
+        config.write(configfile)
 
-    db = mysql.connector.connect(
-        host=host,
-        user="root",
-        password=pw
-    )
-    cursor = db.cursor()
 
-    # Drop existing database if it exists
-    cursor.execute("DROP DATABASE IF EXISTS {}".format(name))
-
-    cursor.execute("CREATE DATABASE {}".format(name))
-    cursor.execute("USE {}".format(name))
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS bookings (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            uuid VARCHAR(36) UNIQUE,
-            date DATETIME
-        )
-    """)
-
-    print("Database '{}' reset successfully!".format(name))
-
-    cursor.close()
-    db.close()
+def read_config(config_file):
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    return config
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="Reset a MySQL database.")
-    parser.add_argument("database_name", help="The name of the database to reset.")
-    parser.add_argument("password", help="The password for the database user.")
-    parser.add_argument("-H", "--host", help="The host address of the MySQL server (default: localhost)", default="172.17.0.2")
-    args = parser.parse_args()
 
-    reset_database(args.database_name, args.password, args.host)
+    config_file = "dbconfig.ini"
+
+    while True:
+        if os.path.exists(config_file):
+            print("Use current config? (yes/no): ")
+            x = input()
+            if x.lower() == "yes":
+                config = read_config(config_file)
+                break
+            elif x.lower() == "no":
+                print("Database name:")
+                database_name = input()
+                print("Password:")
+                password = input()
+                print("Host:")
+                host = input()
+
+                create_config(config_file, host, database_name, password)
+                config = read_config(config_file)
+                break
+            else:
+                print("Invalid input. Please enter 'yes' or 'no'.")
+
+        else:
+            print("Database name:")
+            database_name = input()
+            print("Password:")
+            password = input()
+            print("Host:")
+            host = input()
+
+            create_config(config_file, host, database_name, password)
+            config = read_config(config_file)
+            break
+
+    reset_database(config)

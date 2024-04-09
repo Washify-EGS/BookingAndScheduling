@@ -2,16 +2,18 @@ import sqlite3
 from models import Slot
 from datetime import datetime
 from uuid import uuid4  
+from database import read_config
 import mysql.connector
 
-
+dbconfig = read_config("dbconfig.ini")
 conn = mysql.connector.connect(
-    host="172.17.0.2",
+    host=dbconfig['database']['host'],
     user="root",
-    password="password",
-    database="testdb"  # Specify the database name
+    password=dbconfig['database']['password'],
+    database=dbconfig['database']['database_name']
 )
 c = conn.cursor()
+
 
 def get_bookings():
     c.execute("SELECT * FROM bookings")
