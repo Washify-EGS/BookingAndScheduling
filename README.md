@@ -11,9 +11,25 @@
     └── models.py
 ``` 
 
+## Usage
+### With Docker
 
 
-### Start Virtual Environment
+To build the Docker image, navigate to the directory containing the Dockerfile and run:
+
+```bash
+docker build -t booking-api .
+```
+
+Once the image is built, you can run it as a container using:
+
+```bash
+docker run -d --name booking-api-container -p 8000:8000 booking-api
+```
+
+### Without Docker
+
+#### Start Virtual Environment
 
 In order to start the virtual environment, run the following commands:
 
@@ -22,7 +38,7 @@ python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
 ```
-### Create database
+#### Create database
 
 Pull MySQL image from Docker Hub with:
 ```bash
@@ -58,10 +74,7 @@ To create/reset the database and its data, run the following command:
 python3 database.py 
 ```
 
-
-
-
-### Run the Application
+#### Run the Application
 
 In order to run the application, run the following command:
 
