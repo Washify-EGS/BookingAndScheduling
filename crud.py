@@ -10,7 +10,8 @@ conn = mysql.connector.connect(
     host=dbconfig['database']['host'],
     user="root",
     password=dbconfig['database']['password'],
-    database=dbconfig['database']['database_name']
+    database=dbconfig['database']['database_name'],
+    consume_results=True
 )
 c = conn.cursor()
 

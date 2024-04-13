@@ -39,6 +39,12 @@ Check if the container is running with:
 docker ps 
 ```
 
+Check if the MySQL server is ready for connections (might have to wait 1-2 minutes):
+```bash
+docker logs bookings
+```
+
+
 Get the container host ip address with:
 
 ```bash
