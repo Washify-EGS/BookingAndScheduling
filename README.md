@@ -20,7 +20,8 @@ docker pull mysql:latest
 
 Create the container:
 ```bash
-docker run --name bookings -e MYSQL_ROOT_PASSWORD=password -d mysql:latest
+linux: docker run --name bookings -e MYSQL_ROOT_PASSWORD=password -d mysql:latest
+windows/mac: docker run -p 3307:3306 --name bookings -e MYSQL_ROOT_PASSWORD=password -d mysql:latest
 ```
 
 Check if the container is running with:

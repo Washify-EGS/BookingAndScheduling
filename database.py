@@ -5,15 +5,17 @@ from argparse import ArgumentParser
 
 def reset_database(config):
     host = config['database']['host']
-    database_name = config['database']['database_name']
+    database_name = config['database']['database_name'] 
     password = config['database']['password']
+    port = config['database']['port']
 
    
     try: 
         db = mysql.connector.connect(
             host=host,
             user="root",
-            password=password
+            password=password,
+            port=port
         )
         cursor = db.cursor()
 
@@ -38,12 +40,13 @@ def reset_database(config):
         print("An error occurred:", e)
 
 
-def create_config(config_file, host, database_name, password):
+def create_config(config_file, host, database_name, password, port):
     config = configparser.ConfigParser()
     config['database'] = {
         'host': host,
         'database_name': database_name,
-        'password': password
+        'password': password,
+        'port': port
     }
     with open(config_file, 'w') as configfile:
         config.write(configfile)
@@ -73,8 +76,10 @@ if __name__ == "__main__":
                 password = input()
                 print("Host:")
                 host = input()
+                print("Port:")
+                port = input()
 
-                create_config(config_file, host, database_name, password)
+                create_config(config_file, host, database_name, password, port)
                 config = read_config(config_file)
                 break
             else:
