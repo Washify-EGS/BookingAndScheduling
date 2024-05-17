@@ -62,40 +62,9 @@ if __name__ == "__main__":
 
     config_file = "dbconfig.ini"
 
-    while True:
-        if os.path.exists(config_file):
-            print("Use current config? (yes/no): ")
-            x = input()
-            if x.lower() == "yes":
-                config = read_config(config_file)
-                break
-            elif x.lower() == "no":
-                print("Database name:")
-                database_name = input()
-                print("Password:")
-                password = input()
-                print("Host:")
-                host = input()
-                print("Port:")
-                port = input()
-
-                create_config(config_file, host, database_name, password, port)
-                config = read_config(config_file)
-                break
-            else:
-                print("Invalid input. Please enter 'yes' or 'no'.")
-
-        else:
-            print("Database name:")
-            database_name = input()
-            print("Password:")
-            password = input()
-            print("Host:")
-            host = input()
-
-            create_config(config_file, host, database_name, password)
-            config = read_config(config_file)
-            break
-
+    if os.path.exists(config_file):
+        config = read_config(config_file)
+    else:
+        print("Error: No database config file found!")
 
     reset_database(config)

@@ -23,6 +23,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the application code into the container
 COPY . /app/
 
+# Copy and run the database setup script
+COPY database.py /app/
+RUN python database.py
+
 # Expose the port that FastAPI will run on
 EXPOSE 8000
 

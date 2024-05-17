@@ -101,7 +101,7 @@ async def get_free_slots(slot_params: SlotParams):
     current_date = start_date
     free_slots = []
 
-    while current_date < end_date:
+    while current_date <= end_date:
         if all(current_date != b for b in booked_dates):
             free_slots.append(current_date)
         current_date += SLOT_INTERVAL
