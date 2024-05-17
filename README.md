@@ -51,7 +51,7 @@ password = password
 port = 3306
 ```
 
-## Run the app
+## Build and Run the api
 
 
 
