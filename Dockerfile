@@ -23,12 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the application code into the container
 COPY . /app/
 
-# Copy and run the database setup script
-COPY database.py /app/
-RUN python database.py
-
 # Expose the port that FastAPI will run on
 EXPOSE 8000
 
-# Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Command to run the database setup script and start the application
+CMD ["sh", "-c", "python database.py && uvicorn main:app --host 0.0.0.0 --port 8000"]
+
